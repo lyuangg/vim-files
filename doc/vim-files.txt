@@ -1,0 +1,382 @@
+*vim-files.txt*   A NERDTree-style file tree for Vim      *vim-files*
+
+==============================================================================
+CONTENTS                                                     *vim-files-contents*
+
+  1. Introduction ........................ |vim-files-intro|
+  2. Requirements ........................ |vim-files-requirements|
+  3. Commands ............................ |vim-files-commands|
+  4. Tree mappings ....................... |vim-files-mappings|
+  5. Preview ............................. |vim-files-preview|
+  6. File operations ..................... |vim-files-file-ops|
+  7. Git status .......................... |vim-files-git|
+  8. Sorting ............................. |vim-files-sorting|
+  9. Options ............................ |vim-files-options|
+ 10. Highlight groups .................... |vim-files-highlight|
+ 11. License ............................. |vim-files-license|
+
+==============================================================================
+1. INTRODUCTION                                              *vim-files-intro*
+
+vim-files is a file tree side panel inspired by NERDTree.  It supports
+expanding and collapsing directories, git status markers, optional
+vim-devicons file icons, floating file previews, file operations, sorting,
+and revealing the current buffer in the tree.
+
+The tree is a normal Vim buffer named "[vim-files]" with 'filetype'
+"vim-files".  It is reused when the panel is closed and reopened.
+
+==============================================================================
+2. REQUIREMENTS                                         *vim-files-requirements*
+
+Vim 9.0 or newer with the |+popupwin| feature.  The plugin has been tested on
+Vim 9.2.
+
+Optional:
+  - https://github.com/ryanoasis/vim-devicons and a Nerd Font for icons.
+  - `git` on $PATH for git status.
+  - `cp` for recursive copy on Unix.  Windows uses a Vimscript fallback.
+
+==============================================================================
+3. COMMANDS                                              *vim-files-commands*
+
+:VimFiles [path]                                        *:VimFiles*
+        Open the tree.  Without a path, use the current working directory (or
+        the root of an existing tree).  If {path} is a file, the tree opens at
+        its parent directory and reveals the file.
+
+:VimFilesToggle [path]                                  *:VimFilesToggle*
+        Show the tree, or hide it when it is already visible in the current
+        tab.  When opening, an optional {path} is handled like |:VimFiles|.
+
+:VimFilesClose                                           *:VimFilesClose*
+        Close the tree in the current tab.
+
+:VimFilesFind                                            *:VimFilesFind*
+        Reveal the file of the current buffer in the tree.  This is the
+        NERDTreeFind equivalent.  If the file is outside the tree root, the
+        root changes to the file's directory.
+
+:VimFilesRefresh                                       *:VimFilesRefresh*
+        Reload the tree and git status.  Equivalent to pressing `R`.
+
+:VimFilesToggleHidden                                *:VimFilesToggleHidden*
+        Show or hide dotfiles.
+
+:VimFilesToggleGit                                      *:VimFilesToggleGit*
+        Enable or disable git status.
+
+:VimFilesPreview                                      *:VimFilesPreview*
+        Toggle a manual preview of the node under the cursor.  Directories
+        show a listing.
+
+:VimFilesToggleAutoPreview                      *:VimFilesToggleAutoPreview*
+        Toggle automatic preview while moving the cursor.
+
+:VimFilesSort [mode]                                     *:VimFilesSort*
+        Set the sort mode to one of: name, extension, size, mtime, none.
+
+:VimFilesHelp                                            *:VimFilesHelp*
+        Show a key help popup.
+
+==============================================================================
+4. TREE MAPPINGS                                        *vim-files-mappings*
+
+Global mappings are only installed when the key is not already mapped:
+
+  <Plug>(vim-files-toggle)      toggle tree
+  <Plug>(vim-files-find)        reveal current buffer
+  <Plug>(vim-files-close)       close tree
+
+Defaults (disable with |g:vim_files_default_mappings|):
+
+  <leader>e                     |:VimFilesToggle|
+  <leader>E                     |:VimFilesFind|
+
+Tree buffer mappings:
+
+  j, k, <Down>, <Up>            move; automatic preview follows
+  <CR>, o, <2-LeftMouse>        open file or toggle directory
+  go                            open file and stay in the tree window
+  l, <Right>                    expand directory or open file
+  h, <Left>                     collapse directory or jump to parent
+  t                             open in a new tab
+  s                             open in a vertical split
+  i                             open in a horizontal split
+  p                             toggle automatic preview (default off)
+  <C-p>                         toggle a manual preview
+  a                             create file or directory (trailing "/")
+  A                             create directory
+  r                             rename
+  d                             delete (with confirmation)
+  c                             mark for copy
+  P                             paste
+  y                             copy path menu
+  Y                             copy absolute path
+  H                             toggle hidden files; scroll preview left when open
+  J / K                         scroll preview down / up
+  L                             scroll preview right
+  g                             toggle git status
+  I                             file details
+  S                             sort menu
+  R, <F5>                       refresh tree and git status
+  f                             reveal current buffer
+  C                             make the selected directory the root
+  u                             move the root one level up
+  m                             action menu
+  ?                             key help popup
+  q                             close tree
+  x                             close the active preview/details/help/menu popup
+  <Esc>                         close preview/details/help, possibly delayed
+  <C-d>, <C-u>                  scroll preview by 10 lines
+  <C-e>, <C-y>                  scroll preview by one line
+  <C-f>, <C-b>                  scroll preview by 20 lines
+
+==============================================================================
+5. PREVIEW                                               *vim-files-preview*
+
+Preview is shown in a floating popup window, not a split.  It does not open
+the file in a buffer and does not change the window layout.  By default it
+fills the whole area next to the tree: the right side when the tree is on the
+left, and the left side when the tree is on the right.  Set
+|g:vim_files_preview_fill| to 0 for a bounded floating popup.
+
+Automatic preview is off by default.  Press `p` to toggle it.  While it is on,
+moving the cursor with j/k (or the mouse) previews automatically.  Press `p`
+again to turn it off and close the preview.  `<C-p>`, the `m` menu, and
+|:VimFilesPreview| toggle a manual preview.
+
+Directories are shown as a listing in the same popup instead of closing it,
+so moving over directory nodes with j/k does not make the pane blink.  Binary,
+unreadable, and oversized files show a placeholder line in the pane.
+
+Controls while a preview is open:
+  J / K            scroll one line down / up
+  H / L            scroll one column left / right
+  <C-d> / <C-u>    scroll by 10 lines
+  <C-e> / <C-y>    scroll by one line
+  <C-f> / <C-b>    scroll by 20 lines
+  x                close the preview popup immediately
+  Esc              close the preview popup (may wait for 'timeoutlen')
+
+When no preview is open, H toggles hidden files as usual.
+
+  ESC TIMING                                      *vim-files-esc-timing*
+  Vim may wait for a terminal escape sequence before delivering Esc to a
+  popup.  Use `x` for an immediate close, or set the following options:
+        set ttimeout ttimeoutlen=100
+
+Limits:
+  g:vim_files_preview           enable/disable preview
+  g:vim_files_auto_preview      automatic preview (default 0)
+  g:vim_files_preview_fill      fill the area beside the tree (default 1)
+  g:vim_files_preview_delay     coalesce rapid j/k updates (default 200 ms)
+  g:vim_files_preview_width     max width when fill = 0 (default 100)
+  g:vim_files_preview_height    height when fill = 0 (default 30)
+  g:vim_files_preview_max_lines max lines loaded (default 500)
+  g:vim_files_preview_max_size  max bytes (default 524288)
+
+Binary files and files over the size limit show a placeholder line in the pane
+instead of closing it; manual preview also prints the reason.  Syntax
+highlighting is chosen from the file extension.
+
+Rapid j/k movement is coalesced by |g:vim_files_preview_delay| (milliseconds,
+default 200).  Set it to 0 to update the preview on every cursor move.
+
+==============================================================================
+6. FILE OPERATIONS                                     *vim-files-file-ops*
+
+Create ~
+  `a` prompts for a new file or directory.  A trailing slash creates a
+  directory.  `A` always creates a directory.  Names are relative to the
+  selected directory, or to a selected file's parent.  Absolute paths are
+  accepted and intermediate directories are created.
+
+Rename ~
+  `r` prompts with the current name.  The new name is relative to the current
+  parent; a path with slashes moves the node.  Existing paths are not
+  overwritten.  The tree root cannot be renamed.
+
+Delete ~
+  `d` asks for confirmation and deletes recursively.  The tree root cannot be
+  deleted.
+
+Copy / paste ~
+  `c` marks the file or directory under the cursor.  `P` pastes it into the
+  selected directory, or into a selected file's parent directory.  The
+  original node is not removed.  Existing names are preserved by adding
+  " copy" and a number.  Copying a directory into itself is rejected.
+
+Copy names and paths ~
+  `y` opens a menu for file name, relative path, and absolute path.  `Y`
+  copies the absolute path directly.  The system clipboard is used when
+  available; otherwise the unnamed register is used.
+
+==============================================================================
+7. GIT STATUS                                             *vim-files-git*
+
+Git status comes from `git status --porcelain=v1 -z`.  Paths are mapped through
+`git rev-parse --show-prefix`, so trees rooted in a repository subdirectory
+work.  Directories show the most severe status of their contents.  The branch
+name appears in the tree window statusline.
+
+Default symbols: >
+
+  modified    ✗
+  added       ✚
+  deleted     ✖
+  renamed     ➜
+  untracked   ★
+  conflict    ⚠
+  ignored     ◌
+
+Override with |g:vim_files_git_symbols|.  Saving a buffer refreshes the tree
+when |g:vim_files_auto_refresh| is enabled.  Press `R` to refresh manually.
+
+==============================================================================
+8. SORTING                                             *vim-files-sorting*
+
+Sort with |:VimFilesSort| or the `S` menu.  Modes:
+
+  name         case-insensitive name (default)
+  extension    extension, then name
+  size         file size
+  mtime        modification time
+  none         filesystem order
+
+The menu can also toggle directories-first and reverse order.  See
+|g:vim_files_sort|, |g:vim_files_sort_dirs_first|,
+|g:vim_files_sort_reverse|, and |g:vim_files_sort_case_sensitive|.
+
+==============================================================================
+9. OPTIONS                                             *vim-files-options*
+
+All options are optional.  They are read when the plugin loads (or when a new
+tree buffer is created), unless stated otherwise.
+
+g:vim_files_width (default 34)                          *g:vim_files_width*
+        Tree window width.
+
+g:vim_files_side (default 'left')                        *g:vim_files_side*
+        'left' or 'right'.
+
+g:vim_files_show_hidden (default 0)                *g:vim_files_show_hidden*
+        Initial dotfile visibility.
+
+g:vim_files_show_git (default 1)                      *g:vim_files_show_git*
+        Enable git status initially.
+
+g:vim_files_git_untracked (default 1)            *g:vim_files_git_untracked*
+        When 1 use `--untracked-files=all`; when 0 use `normal`.
+
+g:vim_files_ignore (default [])                        *g:vim_files_ignore*
+        Optional names or glob patterns hidden in every tree, regardless of
+        |g:vim_files_show_hidden|.  Empty by default, so .git, .DS_Store and
+        other dotfiles follow the normal hidden-file rule.
+
+g:vim_files_icons (default 1)                           *g:vim_files_icons*
+        Use vim-devicons glyphs when WebDevIconsGetFileTypeSymbol() exists.
+
+g:vim_files_cursorline (default 1)                 *g:vim_files_cursorline*
+        Highlight the current line in the tree window.
+
+g:vim_files_indent (default '  ')                      *g:vim_files_indent*
+        Indent string per tree level.
+
+g:vim_files_dir_arrows (default ['▸', '▾'])      *g:vim_files_dir_arrows*
+        Collapsed and expanded directory arrows.
+
+g:vim_files_preview (default 1)                      *g:vim_files_preview*
+        Enable floating previews.
+
+g:vim_files_auto_preview (default 0)            *g:vim_files_auto_preview*
+        Preview files when the cursor moves in the tree.  Toggle it with `p`.
+
+g:vim_files_preview_fill (default 1)            *g:vim_files_preview_fill*
+        When 1, the preview fills all space next to the tree.  When 0, use the
+        bounded popup size from |g:vim_files_preview_width| and
+        |g:vim_files_preview_height|.
+
+g:vim_files_preview_width (default 100)      *g:vim_files_preview_width*
+        Maximum preview popup width when |g:vim_files_preview_fill| is 0.
+
+g:vim_files_preview_height (default 30)     *g:vim_files_preview_height*
+        Preview popup height when |g:vim_files_preview_fill| is 0.
+
+g:vim_files_preview_delay (default 200)       *g:vim_files_preview_delay*
+        Delay in milliseconds used to coalesce rapid j/k movements.  This
+        avoids updating the preview for every intermediate node.  Set to 0
+        for an immediate update on every cursor move.
+
+g:vim_files_preview_max_lines (default 500) *g:vim_files_preview_max_lines*
+        Maximum number of lines loaded into the preview.
+
+g:vim_files_preview_max_size (default 524288) *g:vim_files_preview_max_size*
+        Files larger than this many bytes are not previewed.
+
+g:vim_files_auto_refresh (default 1)            *g:vim_files_auto_refresh*
+        Refresh the tree after |BufWritePost| for files under the root.
+
+g:vim_files_close_on_open (default 0)          *g:vim_files_close_on_open*
+        Close the tree after opening a file.
+
+g:vim_files_default_mappings (default 1)    *g:vim_files_default_mappings*
+        Install the default <leader> mappings when the keys are free.
+
+g:vim_files_map_toggle (default '<leader>e')     *g:vim_files_map_toggle*
+        Mapping installed for |:VimFilesToggle| when free.
+
+g:vim_files_map_find (default '<leader>E')         *g:vim_files_map_find*
+        Mapping installed for |:VimFilesFind| when free.
+
+g:vim_files_sort (default 'name')                      *g:vim_files_sort*
+        Initial sort mode, see |vim-files-sorting|.
+
+g:vim_files_sort_dirs_first (default 1)      *g:vim_files_sort_dirs_first*
+        Show directories before files.
+
+g:vim_files_sort_reverse (default 0)            *g:vim_files_sort_reverse*
+        Reverse the sort order within the directory/file groups.
+
+g:vim_files_sort_case_sensitive (default 0)
+                                            *g:vim_files_sort_case_sensitive*
+        Case-sensitive name sorting.
+
+g:vim_files_git_symbols                                        *g:vim_files_git_symbols*
+        Dictionary overriding the git status symbols.  Keys: modified, added,
+        deleted, renamed, untracked, conflict, ignored.
+
+Example: >
+        let g:vim_files_width = 40
+        let g:vim_files_ignore = ['node_modules', '*.swp']
+        let g:vim_files_git_symbols.modified = 'M'
+<
+==============================================================================
+10. HIGHLIGHT GROUPS                                  *vim-files-highlight*
+
+The following groups are defined with |:highlight-default|.  Override them in
+your vimrc or colorscheme:
+
+  VimFilesRoot          root line
+  VimFilesDir           directory names
+  VimFilesDirArrow      expand/collapse arrows
+  VimFilesIcon          devicons glyphs
+  VimFilesLink          symlink file names
+  VimFilesCurrentFile   file shown in the previous window
+  VimFilesGitModified   modified marker
+  VimFilesGitAdded      added marker
+  VimFilesGitDeleted    deleted marker
+  VimFilesGitRenamed    renamed marker
+  VimFilesGitUntracked  untracked marker
+  VimFilesGitConflict   conflict marker
+  VimFilesGitIgnored    ignored marker
+
+Example: >
+        highlight VimFilesDir ctermfg=39 cterm=bold guifg=#61afef gui=bold
+<
+==============================================================================
+11. LICENSE                                             *vim-files-license*
+
+MIT License.  Copyright (c) 2026 lyuangg.
+
+ vim:tw=78:ts=8:noet:ft=help:norl:
