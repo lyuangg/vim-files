@@ -205,6 +205,9 @@ function! s:setup_mappings() abort
   nnoremap <buffer> <silent> h :<C-u>call vimfiles#ui#action('collapse_or_parent')<CR>
   nnoremap <buffer> <silent> <Right> :<C-u>call vimfiles#ui#action('expand_or_open')<CR>
   nnoremap <buffer> <silent> <Left> :<C-u>call vimfiles#ui#action('collapse_or_parent')<CR>
+  nnoremap <buffer> <silent> E :<C-u>call vimfiles#ui#action('expand_all')<CR>
+  nnoremap <buffer> <silent> zR :<C-u>call vimfiles#ui#action('expand_all')<CR>
+  nnoremap <buffer> <silent> zM :<C-u>call vimfiles#ui#action('collapse_all')<CR>
   nnoremap <buffer> <silent> t :<C-u>call vimfiles#ui#action('tab')<CR>
   nnoremap <buffer> <silent> s :<C-u>call vimfiles#ui#action('vsplit')<CR>
   nnoremap <buffer> <silent> i :<C-u>call vimfiles#ui#action('split')<CR>
@@ -966,6 +969,53 @@ function! vimfiles#tree#collapse(path) abort
     call s:save_vf(l:buf, l:vf)
     call s:render(a:path)
   endif
+endfunction
+
+function! vimfiles#tree#expand_all(path) abort
+  let l:buf = vimfiles#tree#find_buf()
+  if l:buf < 0
+    return
+  endif
+  let l:vf = s:get_vf(l:buf)
+  let l:dir = s:target_dir(l:vf, a:path)
+  if empty(l:dir) || !isdirectory(l:dir)
+    return
+  endif
+  let l:vf.expanded[l:dir] = 1
+  call s:expand_children(l:vf, l:dir, 0)
+  call s:save_vf(l:buf, l:vf)
+  call s:render(l:dir)
+endfunction
+
+function! vimfiles#tree#collapse_all(path) abort
+  let l:buf = vimfiles#tree#find_buf()
+  if l:buf < 0
+    return
+  endif
+  let l:vf = s:get_vf(l:buf)
+  let l:vf.expanded = {}
+  let l:vf.expanded[l:vf.root] = 1
+  call s:save_vf(l:buf, l:vf)
+  call s:render(a:path)
+endfunction
+
+function! s:target_dir(vf, path) abort
+  if empty(a:path)
+    return a:vf.root
+  endif
+  return isdirectory(a:path) ? a:path : fnamemodify(a:path, ':h')
+endfunction
+
+function! s:expand_children(vf, dir, depth) abort
+  if a:depth > 256
+    return
+  endif
+  for l:node in s:list_dir(a:vf, a:dir)
+    if l:node.is_dir && !l:node.is_link
+      let a:vf.expanded[l:node.path] = 1
+      call s:expand_children(a:vf, l:node.path, a:depth + 1)
+    endif
+  endfor
 endfunction
 
 function! vimfiles#tree#goto_parent(path) abort

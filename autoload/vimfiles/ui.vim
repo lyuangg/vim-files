@@ -87,6 +87,10 @@ function! s:dispatch(action, path, is_dir) abort
     else
       call vimfiles#tree#goto_parent(l:path)
     endif
+  elseif a:action ==# 'expand_all'
+    call vimfiles#tree#expand_all(l:path)
+  elseif a:action ==# 'collapse_all'
+    call vimfiles#tree#collapse_all(l:path)
   elseif a:action ==# 'tab' || a:action ==# 'vsplit' || a:action ==# 'split'
     if empty(l:path)
       return
@@ -343,6 +347,8 @@ function! vimfiles#ui#menu() abort
         \ {'key': 'S', 'text': 'Sort by...',              'action': 'sort_menu'},
         \ {'key': 'R', 'text': 'Refresh tree',            'action': 'refresh'},
         \ {'key': 'f', 'text': 'Find current file',       'action': 'find'},
+        \ {'key': 'E', 'text': 'Expand all',              'action': 'expand_all'},
+        \ {'key': 'M', 'text': 'Collapse all',            'action': 'collapse_all'},
         \ {'key': 'C', 'text': 'Change root here',        'action': 'change_root'},
         \ {'key': 'u', 'text': 'Go up one level',         'action': 'up_root'},
         \ {'key': 'q', 'text': 'Close tree',              'action': 'close'},
@@ -537,6 +543,8 @@ function! s:help_lines() abort
         \ '    j / k / <Down> / <Up>   move',
         \ '    h / <Left>              collapse / go to parent',
         \ '    l / <Right>             expand / open',
+        \ '    E / zR                  expand all below the cursor',
+        \ '    zM                      collapse all below the root',
         \ '    o / <CR>                open file or toggle directory',
         \ '    go                      open file, stay in the tree',
         \ '    t                       open in a new tab',

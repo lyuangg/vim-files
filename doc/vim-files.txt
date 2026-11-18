@@ -100,6 +100,8 @@ Tree buffer mappings:
   go                            open file and stay in the tree window
   l, <Right>                    expand directory or open file
   h, <Left>                     collapse directory or jump to parent
+  E, zR                         expand all directories below the cursor
+  zM                            collapse all directories
   t                             open in a new tab
   s                             open in a vertical split
   i                             open in a horizontal split
@@ -131,6 +133,11 @@ Tree buffer mappings:
   <C-d>, <C-u>                  scroll preview by 10 lines
   <C-e>, <C-y>                  scroll preview by one line
   <C-f>, <C-b>                  scroll preview by 20 lines
+
+`E` and `zR` expand the selected directory and all of its descendants.  When a
+file is selected, its parent directory is used.  Symbolic links are not
+followed.  `zM` collapses every directory below the root; the root itself
+stays expanded.
 
 ==============================================================================
 5. PREVIEW                                               *vim-files-preview*

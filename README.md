@@ -72,6 +72,8 @@ Default mappings can be disabled with `let g:vim_files_default_mappings = 0`.
 | `go` | Open the selected file and retain focus in the tree. |
 | `l`, `<Right>` | Expand the selected directory or open the selected file. |
 | `h`, `<Left>` | Collapse the selected directory or move the cursor to its parent. |
+| `E`, `zR` | Expand the selected directory and every directory below it. A file uses its parent directory. |
+| `zM` | Collapse every directory below the root. |
 | `t` | Open the selected file in a new tab. |
 | `s` | Open the selected file in a vertical split. |
 | `i` | Open the selected file in a horizontal split. |
